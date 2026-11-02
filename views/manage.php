@@ -45,6 +45,51 @@ $categories = ['tangan' => 'Nails Tangan', 'kaki' => 'Nails Kaki'];
         <?php endif; ?>
     </section>
 
+    <!-- SECTION: Kelola Nail Artist (Baru) -->
+    <section class="manage-section">
+        <header class="section-head">
+            <div>
+                <h2>Kelola Nail Artist / Staf</h2>
+                <p>Tambah dan atur daftar nail artist yang tampil pada pilihan pemesanan.</p>
+            </div>
+            <a class="button" href="index.php?action=artist-edit">+ Tambah Nail Artist</a>
+        </header>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Username</th>
+                        <th>Nama Lengkap</th>
+                        <th>Spesialisasi</th>
+                        <th>No. HP</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php if (empty($artists)): ?>
+                    <tr><td class="empty" colspan="6">Belum ada nail artist terdaftar.</td></tr>
+                <?php else: foreach ($artists as $index => $artist): ?>
+                    <tr>
+                        <td><?= $index + 1 ?></td>
+                        <td><?= $escape($artist['username']) ?></td>
+                        <td><?= $escape($artist['nama_lengkap']) ?></td>
+                        <td><?= $escape($artist['spesialisasi']) ?></td>
+                        <td><?= $escape($artist['no_hp']) ?></td>
+                        <td class="actions">
+                            <a class="secondary" href="index.php?action=artist-edit&amp;id=<?= (int) $artist['id'] ?>">Edit</a>
+                            <form method="POST" action="index.php?action=artist-delete" onsubmit="return confirm('Hapus nail artist ini?')">
+                                <input type="hidden" name="id" value="<?= (int) $artist['id'] ?>">
+                                <button class="delete" type="submit">Hapus</button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php endforeach; endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
     <!-- SECTION: Daftar Pemesanan Masuk -->
     <section class="manage-section">
         <header class="section-head">

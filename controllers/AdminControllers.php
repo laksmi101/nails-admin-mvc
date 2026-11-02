@@ -40,6 +40,7 @@ class AdminController {
         $catalog = $this->model->getAllCatalogItems();
         $owner = $this->model->getOwnerProfile();
         $pemesanan = $this->model->getAllPemesanan(); // <-- Mengambil data pemesanan untuk admin
+        $artists = $this->model->getAllAdmin(); // <-- Mengambil data nail artist / staf untuk admin
         require __DIR__ . '/../views/manage.php';
     }
 
@@ -70,6 +71,82 @@ class AdminController {
         exit;
     }
     // ---------------------------------------------
+
+    // --- FITUR KELOLA NAIL ARTIST / STAF DI ADMIN ---
+    public function editArtist() {
+        $this->requireAdmin();
+        $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+        $artist = $id ? $this->model->getAdminById($id) : null;
+        if ($id && !$artist) {
+            http_response_code(404);
+            exit('Data nail artist tidak ditemukan.');
+        }
+        $error = '';
+        require __DIR__ . '/../views/artist-form.php';
+    }
+
+    public function saveArtist() {
+        $this->requireAdmin();
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            exit('Metode permintaan tidak diizinkan.');
+        }
+
+        $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+        $username = trim($_POST['username'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $name = trim($_POST['nama_lengkap'] ?? '');
+        $specialization = trim($_POST['spesialisasi'] ?? '');
+        $phone = trim($_POST['no_hp'] ?? '');
+
+        if ($username === '' || strlen($username) > 100 ||
+            $name === '' || strlen($name) > 150 ||
+            $specialization === '' || strlen($specialization) > 120 ||
+            $phone === '' || strlen($phone) > 30 || (!$id && $password === '')) {
+            http_response_code(422);
+            $error = 'Mohon isi semua data nail artist dengan benar.';
+            $artist = compact('id', 'username', 'nama_lengkap', 'spesialisasi', 'no_hp');
+            require __DIR__ . '/../views/artist-form.php';
+            return;
+        }
+
+        if ($id) {
+            if ($password !== '') {
+                $saved = $this->model->updateAdminWithPassword($id, $username, $password, $name, $specialization, $phone);
+            } else {
+                $saved = $this->model->updateAdmin($id, $username, $name, $specialization, $phone);
+            }
+        } else {
+            if ($this->model->getAdminByUsername($username)) {
+                http_response_code(409);
+                $error = 'Username sudah digunakan.';
+                $artist = compact('username', 'nama_lengkap', 'spesialisasi', 'no_hp');
+                require __DIR__ . '/../views/artist-form.php';
+                return;
+            }
+            $saved = $this->model->insertAdmin($username, $password, $name, $specialization, $phone);
+        }
+
+        if (!$saved) {
+            throw new RuntimeException('Data nail artist gagal disimpan.');
+        }
+
+        header('Location: index.php?action=manage');
+        exit;
+    }
+
+    public function deleteArtist() {
+        $this->requireAdmin();
+        $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+        if (!$id) {
+            http_response_code(400);
+            exit('ID nail artist tidak valid.');
+        }
+        $this->model->deleteAdmin($id);
+        header('Location: index.php?action=manage');
+        exit;
+    }
+    // ------------------------------------------------
 
     // --- FITUR LOGIN & SESSION PELANGGAN (USER) ---
     public function userLogin() {
@@ -108,7 +185,6 @@ class AdminController {
     // ---------------------------------------------
 
     public function order() {
-        // Proteksi: Pelanggan wajib login/mengisi identitas dulu sebelum bisa pesan
         if (empty($_SESSION['user_name'])) {
             header('Location: index.php?action=user-login');
             exit;

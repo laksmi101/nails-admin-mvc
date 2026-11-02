@@ -60,6 +60,17 @@ switch ($action) {
     case 'update-status': // Tambahan route untuk ACC Pembayaran Admin
         $controller->updateStatus();
         break;
+    // --- ROUTE BARU UNTUK KELOLA NAIL ARTIST ---
+    case 'artist-edit':
+        $controller->editArtist();
+        break;
+    case 'artist-save':
+        $controller->saveArtist();
+        break;
+    case 'artist-delete':
+        $controller->deleteArtist();
+        break;
+    // -------------------------------------------
     default:
         $controller->index();
         break;

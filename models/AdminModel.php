@@ -55,6 +55,14 @@ class AdminModel {
         return $stmt->execute();
     }
 
+    // Update khusus admin/artist jika ingin mengubah password sekaligus atau terpisah
+    public function updateAdminWithPassword($id, $username, $password, $nama_lengkap, $spesialisasi, $no_hp) {
+        $password = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $this->db->prepare("UPDATE tb_admin SET username = ?, password = ?, nama_lengkap = ?, spesialisasi = ?, no_hp = ? WHERE id = ?");
+        $stmt->bind_param("sssssi", $username, $password, $nama_lengkap, $spesialisasi, $no_hp, $id);
+        return $stmt->execute();
+    }
+
     public function deleteAdmin($id) {
         $stmt = $this->db->prepare("DELETE FROM tb_admin WHERE id = ?");
         $stmt->bind_param("i", $id);
